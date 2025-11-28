@@ -125,3 +125,10 @@ class Triangle(Shape):
                     t.pendown()
         t.left(120)
         t.penup()
+
+class Blank(Shape):
+    def draw(self, t):
+        pass
+    
+    def draw_dashed(self, t):
+        pass
