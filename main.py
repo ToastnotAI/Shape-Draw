@@ -1,7 +1,8 @@
 from shape_renderer import Renderer, Factory
 from interpreter import File, Interpreter
 
-file1 = Interpreter("test.txt")
+target = input("Name of file to be interpreted: ")
+file1 = Interpreter(target)
 request = [Factory.create_shape(s) for s in file1.commands]
 canvas = Renderer()
 canvas.render(request)
