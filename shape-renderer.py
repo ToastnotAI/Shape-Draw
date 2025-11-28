@@ -18,18 +18,25 @@ class Shape():
     def draw_dashed(self, t):
         raise NotImplementedError("Subclasses should implement this method")
 
-    def fill(self, t):
+# method to handle fill can be overridden if needed
+    def begin_fill(self, t):
         t.begin_fill()
-        self.draw(t)
-        t.end_fill()
     
+    def end_fill(self, t):
+        t.end_fill()
+        
     def begin(self, t):
+        if "fill" in self.modifiers:
+            self.begin_fill(t)
+
         if "dashed" in self.modifiers:
             self.draw_dashed(t)
-        if "fill" in self.modifiers:
-            self.fill(t)
-        if "fill" not in self.modifiers and "dashed" not in self.modifiers:
+
+        if "dashed" not in self.modifiers:
             self.draw(t)
+        
+        if "fill" in self.modifiers:
+            t.end_fill()
 
 
 
@@ -63,6 +70,7 @@ class Square(Shape):
                 t.pendown()
         t.right(90)
         t.penup()
+
 
 class Circle(Shape):
     turns = 72
