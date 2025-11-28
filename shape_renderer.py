@@ -67,6 +67,8 @@ if __name__ == "__main__":
                 if mod not in newShape:
                     newShape.append(mod)#
         queue.append(newShape)
+    
+    
     request = [Factory.create_shape(s) for s in queue]
 
     renderer = Renderer()

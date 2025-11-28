@@ -79,15 +79,18 @@ class Interpreter():
             idx += 1
 
 
+    def get_commands(self):
+        return commands
 
-
-
-
-
-
+        
     def __init__(self, filePath):
         self.file = File(filePath)
         self.parse_commands()
+
+    def __repr__(self):
+        return commands
+
+
 
 
 if __name__ == "__main__":
