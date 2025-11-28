@@ -1,3 +1,4 @@
+from colour import Color
 class File():
     def __init__(self, path):
         self.path = path
@@ -10,19 +11,31 @@ class File():
     
 class Interpreter():
     commands = []
+
+    def _check_colour(self, _colour):
+        try:
+            _colour = _colour.replace(" ", "")
+            Color(_colour)
+        except ValueError:
+            raise ValueError("Argument for colour was not valid: {}".format(_colour))
+
+
     def parse_commands(self):
         lines = self.file.read()
         idx = 0
         state = 0 # 0 = looking for shape, 1 = looking for modifier start 2 = looking for modifiern 3 = grabbing colour
+        
         while True:
             if idx > len(lines)-1:
                 break
+
+            #Searching for shape
             if state == 0:
                 shape = []
                 fill = False
                 if lines[idx].isupper():
                     fill = True
-
+                #check what shape current letter is
                 match lines[idx].lower():
                     case 't':
                         shape.append("triangle")
@@ -36,6 +49,7 @@ class Interpreter():
                     case ' ':
                         shape.append("blank")
                         state = 1
+                    
                     case _:
                         raise ValueError("Unknown shape type: {}".format(lines[idx]))
 
@@ -69,11 +83,15 @@ class Interpreter():
                 match lines[idx]:
                     case ",":
                         colour.append(current)
+                        self._check_colour(current)
                         current=""
                     case "]":
                         colour.append(current)
                         shape.append(colour)
                         state = 2
+                        if len(colour) > 3:
+                            raise TypeError("Expected 2 arguments for colour but {} were given".format(len(colour)-1))
+                        self._check_colour(current)
                     case _:
                         current += str(lines[idx])                     
             idx += 1
@@ -82,7 +100,7 @@ class Interpreter():
     def get_commands(self):
         return commands
 
-        
+
     def __init__(self, filePath):
         self.file = File(filePath)
         self.parse_commands()
