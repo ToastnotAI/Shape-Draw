@@ -22,6 +22,12 @@ class Shape():
         t.end_fill()
         
     def begin(self, t):
+        for i in self.modifiers:
+            if type(i) == list and i[0] == "colour":
+                t.pencolor(i[1])
+                if len(i) > 2:
+                    t.fillcolor(i[2])
+
         if "fill" in self.modifiers:
             self.begin_fill(t)
 
@@ -33,7 +39,8 @@ class Shape():
         
         if "fill" in self.modifiers:
             t.end_fill()
-
+        t.pencolor("black") # reset line colour after drawing shape
+        t.fillcolor("black") # reset fill colour after drawing shape
 
 
 
@@ -42,7 +49,7 @@ class Square(Shape):
     def draw(self, t):
         for side in range(4):
             t.forward(Shape.shapeWidth)
-            t.right(90)
+            t.left(90)
     
     def draw_dashed(self, t):
         done = False
@@ -51,7 +58,7 @@ class Square(Shape):
             if progress[1] == 3 and progress[0] >= Shape.shapeWidth:
                 done = True
             elif progress[0] >= Shape.shapeWidth:
-                t.right(90)
+                t.left(90)
                 progress[0] = 0
                 progress[1] += 1
             else:
@@ -61,7 +68,7 @@ class Square(Shape):
                     t.penup()
                 else:
                     t.pendown()
-        t.right(90)
+        t.left(90)
         t.penup()
 
 
@@ -75,7 +82,7 @@ class Circle(Shape):
         if pen:
             t.pendown()
         for turn in range(self.turns):
-            t.right(360 / self.turns)
+            t.left(360 / self.turns)
             t.forward((3.14 * Shape.shapeWidth) / self.turns) # use shapeWidth as diameter to find circumference
             if dashed: # dashLength is not compatible with circles so it is handled differently
                 if t.isdown():
@@ -91,5 +98,30 @@ class Circle(Shape):
 
     def draw_dashed(self, t):
         self.draw(t, dashed = True)
+    
 
-
+class Triangle(Shape):
+    def draw(self, t):
+        for side in range(3):
+            t.forward(Shape.shapeWidth)
+            t.left(120)
+    
+    def draw_dashed(self, t):
+        done = False
+        progress = [0, 0] # [distance covered on current side, sides completed]
+        while not done:
+            if progress[1] == 2 and progress[0] >= Shape.shapeWidth:
+                done = True
+            elif progress[0] >= Shape.shapeWidth:
+                t.left(120)
+                progress[0] = 0
+                progress[1] += 1
+            else:
+                t.forward(Shape.dashLength)
+                progress[0] += Shape.dashLength
+                if t.isdown():
+                    t.penup()
+                else:
+                    t.pendown()
+        t.left(120)
+        t.penup()
