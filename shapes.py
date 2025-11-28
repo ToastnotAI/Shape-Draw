@@ -73,7 +73,7 @@ class Square(Shape):
 
 
 class Circle(Shape):
-    turns = 72
+    turns = 30
     
     def draw(self, t, dashed = False):
         pen = t.isdown()

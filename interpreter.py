@@ -26,8 +26,9 @@ class Interpreter():
         state = 0 # 0 = looking for shape, 1 = looking for modifier start 2 = looking for modifiern 3 = grabbing colour
         
         while True:
-            if idx > len(lines)-1:
-                self.commands.append(shape)
+            if idx >= len(lines):
+                if state == 1:
+                    self.commands.append(shape)
                 break
 
             #Searching for shape
