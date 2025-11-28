@@ -132,3 +132,12 @@ class Blank(Shape):
     
     def draw_dashed(self, t):
         pass
+
+class NewLine(Shape):
+    def draw(self, t):
+        t.penup()
+        t.goto(999, t.ycor())
+        t.pendown()
+    
+    def draw_dashed(self, t):
+        self.draw()

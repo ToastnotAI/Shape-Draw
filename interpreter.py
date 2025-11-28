@@ -5,7 +5,7 @@ class File():
     
     def read(self):
         with open(self.path, 'r') as f:
-            content = f.read().strip().replace('\n','')
+            content = f.read().strip().strip('\n')
         f.close()
         return content
     
@@ -27,6 +27,7 @@ class Interpreter():
         
         while True:
             if idx > len(lines)-1:
+                self.commands.append(shape)
                 break
 
             #Searching for shape
@@ -48,6 +49,9 @@ class Interpreter():
                         state = 1
                     case ' ':
                         shape.append("blank")
+                        state = 1
+                    case '\n':
+                        shape.append("newLine")
                         state = 1
                     
                     case _:
