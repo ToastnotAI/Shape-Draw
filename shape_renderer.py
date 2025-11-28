@@ -20,8 +20,8 @@ class Factory():
 class Renderer():
     t = None
     xLimit = 400
-    shapeWidth = 100
-    dashLength = 2
+    shapeWidth = 150
+    dashLength = 10
     thickness = 2
     def __init__(self):
         self.t = turtle.Turtle()
@@ -35,18 +35,15 @@ class Renderer():
     
     def render(self, shapes):
         for shape in shapes:
-            # use the turtle instance, not the module-level turtle functions
             if self.t.xcor() + shape.shapeWidth > self.xLimit:
                 self.t.penup()
                 self.t.goto(self.xLimit * -1, self.t.ycor() - Shape.shapeWidth - (0.1 * Shape.shapeWidth))
                 self.t.pendown()
-            # call begin on the instance, not the class
             shape.begin(self.t)
             self.t.penup()
             self.t.forward(Shape.shapeWidth + (0.1 * shape.shapeWidth))
             self.t.pendown()
-        # don't call done on the Turtle instance; call turtle.done() in main
-        
+        turtle.done()        
 
 
 if __name__ == "__main__":
@@ -55,7 +52,7 @@ if __name__ == "__main__":
     modifiers = ["fill", "dashed", "colour"]
     queue = []
     for i in range(10):
-        newShape = [random.choice(shapes)]#
+        newShape = [random.choice(shapes)]
         modCount = random.randint(0, 3)
         for j in range(modCount):
             mod = random.choice(modifiers)
