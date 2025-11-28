@@ -19,6 +19,7 @@ class Factory():
         else:
             raise ValueError("Unknown shape type: {}, Ensure factory was fed a list".format(shapeType[0]))
 
+#
 class Renderer():
     t = None
     xLimit = 400
@@ -26,6 +27,7 @@ class Renderer():
     dashLength = 10
     thickness = 2
     def __init__(self):
+        #initialise turtle and set it to start position
         self.t = turtle.Turtle()
         self.t.speed(0)
         self.t.penup()
@@ -37,10 +39,12 @@ class Renderer():
     
     def render(self, shapes):
         for shape in shapes:
+            #If turtle is too far right send it to the start of a new line
             if self.t.xcor() + shape.shapeWidth > self.xLimit:
                 self.t.penup()
                 self.t.goto(self.xLimit * -1, self.t.ycor() - Shape.shapeWidth - (0.1 * Shape.shapeWidth))
                 self.t.pendown()
+            #draw next shape then add a gap between shapes
             shape.begin(self.t)
             self.t.penup()
             self.t.forward(Shape.shapeWidth + (0.1 * shape.shapeWidth))
@@ -49,6 +53,7 @@ class Renderer():
 
 
 if __name__ == "__main__":
+    #code will randomly generate multiple shapes selected from the list
     import random
     shapes = ["circle", "square", "triangle", "blank"]
     modifiers = ["fill", "dashed", "colour"]

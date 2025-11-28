@@ -11,7 +11,7 @@ class File():
     
 class Interpreter():
     commands = []
-
+    #Private method to check if colours read from file are valid
     def _check_colour(self, _colour):
         try:
             _colour = _colour.replace(" ", "")
@@ -23,11 +23,13 @@ class Interpreter():
     def parse_commands(self):
         lines = self.file.read()
         idx = 0
-        state = 0 # 0 = looking for shape, 1 = looking for modifier start 2 = looking for modifiern 3 = grabbing colour
+        state = 0 
+        #State machine to parse file. 0 = looking for shape, 1 = looking for modifier start 2 = looking for modifiers 3 = grabbing colours
         
         while True:
+            #Exit condition if the index exceeds the file length
             if idx >= len(lines):
-                if state == 1:
+                if state == 1: #If the state machine is still in state 1 then the last shape was not added to the list so it must be done here
                     self.commands.append(shape)
                 break
 
@@ -54,22 +56,21 @@ class Interpreter():
                     case '\n':
                         shape.append("newLine")
                         state = 1
-                    
                     case _:
                         raise ValueError("Unknown shape type: {}".format(lines[idx]))
-
                 
                 if fill:
                     shape.append("fill")
-
+            #Searching for start of modifiers
             elif state == 1:
                 if lines[idx] == '[':
                     state = 2
                 else:
+                    #if modifiers did not start append and go back so machine can check for shape again
                     self.commands.append(shape)
                     state = 0
                     idx -=1
-                
+            #Check which modifier has been found (additional modifiers must be added here)
             elif state == 2:
                 match lines[idx].lower():
                     case 'd':
@@ -83,7 +84,7 @@ class Interpreter():
                         state = 0
                     case _:
                         raise ValueError("Unkown Modifier: {}".format(lines[idx]))
-            
+            #Get colours to add to colour modifier
             elif state == 3:
                 match lines[idx]:
                     case ",":
@@ -102,20 +103,16 @@ class Interpreter():
             idx += 1
 
 
-    def get_commands(self):
-        return commands
-
-
     def __init__(self, filePath):
         self.file = File(filePath)
         self.parse_commands()
 
     def __repr__(self):
-        return commands
+        return str(self.commands)
 
 
 
 
 if __name__ == "__main__":
     interpreter = Interpreter("test.txt")
-    print(interpreter.commands)
+    print(interpreter)
