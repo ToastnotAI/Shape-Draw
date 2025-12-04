@@ -153,3 +153,21 @@ class NewLine(Shape):
     
     def draw_dashed(self, t):
         self.draw()
+
+# Factory class to create shapes
+# shapeType is a list where the first element is the shape name and all other items are modifiers
+class Factory():
+    @staticmethod
+    def create_shape(shapeType):
+        if shapeType[0] == "square":
+            return Square(shapeType[1:])
+        elif shapeType[0] == "circle":
+            return Circle(shapeType[1:])
+        elif shapeType[0] == "triangle":
+            return Triangle(shapeType[1:])
+        elif shapeType[0] == "blank":
+            return Blank(shapeType[1:])
+        elif shapeType[0] == "newLine":
+            return NewLine(shapeType[1:])
+        else:
+            raise ValueError("Unknown shape type: {}, Ensure factory was fed a list".format(shapeType[0]))
