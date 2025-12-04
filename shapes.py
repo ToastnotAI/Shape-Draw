@@ -16,10 +16,10 @@ class Shape():
         raise NotImplementedError("Subclasses should implement this method")
 
 # method to handle fill can be overridden if needed
-    def begin_fill(self, t):
+    def _begin_fill(self, t):
         t.begin_fill()
     
-    def end_fill(self, t):
+    def _end_fill(self, t):
         t.end_fill()
         
     def begin(self, t):
@@ -30,7 +30,7 @@ class Shape():
                     t.fillcolor(i[2])
         #Fill conditions must be the first and last conditions to properly fill the shape
         if "fill" in self.modifiers:
-            self.begin_fill(t)
+            self._begin_fill(t)
 
         #different line types can be added to this chain
         if "dashed" in self.modifiers:
@@ -39,7 +39,7 @@ class Shape():
             self.draw(t)
         
         if "fill" in self.modifiers:
-            self.end_fill(t)
+            self._end_fill(t)
         t.pencolor("black") # reset line colour after drawing shape
         t.fillcolor("black") # reset fill colour after drawing shape
 

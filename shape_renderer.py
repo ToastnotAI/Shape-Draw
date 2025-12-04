@@ -23,9 +23,9 @@ class Factory():
 class Renderer():
     t = None
     xLimit = 400
-    shapeWidth = 150
-    dashLength = 10
-    thickness = 2
+    thickness = 4 
+    shapeWidth = 150 # Size of shapes in x axis. 
+    dashLength = 10 # dash length of dashed shapes
     def __init__(self):
         #initialise turtle and set it to start position
         self.t = turtle.Turtle()
@@ -35,7 +35,7 @@ class Renderer():
         self.t.pendown()
         self.t.pensize(self.thickness)
         Shape.shapeWidth = self.shapeWidth
-        Shape.dashLength = self.dashLength
+        Shape.dashLength = self.dashLength 
     
     def render(self, shapes):
         for shape in shapes:
