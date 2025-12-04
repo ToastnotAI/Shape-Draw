@@ -43,7 +43,13 @@ class Shape():
         t.pencolor("black") # reset line colour after drawing shape
         t.fillcolor("black") # reset fill colour after drawing shape
 
-
+    def __eq__(self,other): #Equivalance function
+        if type(other) != type(self):
+            return False
+        if other.modifiers == self.modifiers:
+            return True
+        else:
+            return False
 
 class Square(Shape):
     def draw(self, t):

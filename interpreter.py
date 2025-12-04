@@ -1,4 +1,5 @@
 from colour import Color
+from shapes import *
 class File():
     def __init__(self, path):
         self.path = path
@@ -10,7 +11,6 @@ class File():
         return content
     
 class Interpreter():
-    commands = []
     #Private method to check if colours read from file are valid
     def _check_colour(self, _colour):
         try:
@@ -21,6 +21,7 @@ class Interpreter():
 
 
     def parse_commands(self):
+        self.commands = []
         lines = self.file.read()
         idx = 0
         state = 0 
@@ -111,7 +112,23 @@ class Interpreter():
         return str(self.commands)
 
 
-
+# Factory class to create shapes
+# shapeType is a list where the first element is the shape name and all other items are modifiers
+class Factory():
+    @staticmethod
+    def create_shape(shapeType):
+        if shapeType[0] == "square":
+            return Square(shapeType[1:])
+        elif shapeType[0] == "circle":
+            return Circle(shapeType[1:])
+        elif shapeType[0] == "triangle":
+            return Triangle(shapeType[1:])
+        elif shapeType[0] == "blank":
+            return Blank(shapeType[1:])
+        elif shapeType[0] == "newLine":
+            return NewLine(shapeType[1:])
+        else:
+            raise ValueError("Unknown shape type: {}, Ensure factory was fed a list".format(shapeType[0]))
 
 if __name__ == "__main__":
     interpreter = Interpreter("test.txt")

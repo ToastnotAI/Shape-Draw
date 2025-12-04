@@ -1,5 +1,5 @@
 from shape_renderer import Renderer, Factory
-from interpreter import File, Interpreter
+from interpreter import File, Interpreter, Factory
 
 target = input("Name of file to be interpreted: ")
 file1 = Interpreter(target)
