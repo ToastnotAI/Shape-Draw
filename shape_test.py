@@ -147,4 +147,79 @@ class TestFactory(unittest.TestCase):
         validTriangle = Triangle(["fill","dashed",["colour","red","#FFFFFF"]])
         x = self.factory.create_shape(triangle)
         self.assertEqual(x, validTriangle)
+
+class test_turtle_draws_shapes(unittest.TestCase):
+    def setUp(self):
+        self.t = MagicMock()
+        Shape.shapeWidth = 50
     
+    def test_draws_basic_square(self):
+        sq = Square()
+        sq.begin(self.t)
+        forward_total = 0
+        left_total = 0
+        for name, arguments, _ in self.t.mock_calls:
+            if name == 'forward':
+                forward_total += arguments[0]
+            elif name == 'left':
+                left_total += arguments[0]
+        
+        self.assertEqual(forward_total, (Shape.shapeWidth * 4))
+        self.assertEqual(left_total, 360)
+            
+    def test_draws_basic_circle(self):
+        circle = Circle()
+        circle.begin(self.t)
+        forward_total = 0
+        left_total = 0
+        for name, arguments, _ in self.t.mock_calls:
+            if name == 'forward':
+                forward_total += arguments[0]
+            if name == 'left':
+                left_total += arguments[0]
+        self.assertEqual(left_total, 360)#
+        #If width is correct, circumference should be pi * width
+        self.assertEqual(forward_total, Shape.shapeWidth * 3.14)
+        
+        
+
+    def test_draws_basic_triangle(self):
+        triangle = Triangle()
+        triangle.begin(self.t)
+        forward_total = 0
+        left_total = 0
+        for name, arguments, _ in self.t.mock_calls:
+            if name == 'forward':
+                forward_total += arguments[0]
+            elif name == 'left':
+                left_total += arguments[0]
+        self.assertEqual(forward_total, (Shape.shapeWidth * 3))
+        self.assertEqual(left_total, 360)
+
+    def test_draws_filled_square(self):
+        sq = Square(["fill"])
+        sq.begin(self.t)
+        begin_fill_called = any(name == 'begin_fill' for name, _, _ in self.t.mock_calls)
+        end_fill_called = any(name == 'end_fill' for name, _, _ in self.t.mock_calls)
+        self.assertTrue(begin_fill_called)
+        self.assertTrue(end_fill_called)
+
+    def test_draws_dashed_circle(self):
+        circle = Circle(["dashed"])
+        circle.begin(self.t)
+        penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)
+        pendown_called = any(name == 'pendown' for name, _, _ in self.t.mock_calls)
+        self.assertTrue(penup_called)
+        self.assertTrue(pendown_called)
+
+    def test_draws_coloured_triangle(self):
+        triangle = Triangle([["colour", "red","green"]])
+        triangle.begin(self.t)
+        pencolor_called = any(name == 'pencolor' for name, _, _ in self.t.mock_calls)
+        fillcolor_called = any(name == 'fillcolor' for name, _, _ in self.t.mock_calls)
+        self.assertTrue(pencolor_called)
+        self.assertTrue(fillcolor_called)
+
+    def tearDown(self):
+        del(self.t)
+
