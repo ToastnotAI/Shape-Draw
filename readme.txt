@@ -22,5 +22,5 @@ colours are expected in the format:
 And accepts any colours turtle accepts
 
 Example usage:
-sS[d]c[d[black,green]]T[#FF0000,red]
+sS[d]c[d[black,green]]T[[#FF0000,red]]
 
