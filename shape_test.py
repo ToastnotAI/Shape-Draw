@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import unittest.mock
 from interpreter import *
 from shapes import *
+from shape_renderer import *
 
 
 
@@ -28,6 +29,11 @@ class TestInterpreterBaseCases(unittest.TestCase):
         with unittest.mock.patch('interpreter.File.read', return_value = ' '):
             self.testInterpret = Interpreter(None)
             self.assertEqual(self.testInterpret.commands, [["blank"]])
+
+    def test_base_newline(self):
+        with unittest.mock.patch('interpreter.File.read', return_value = '\n'):
+            self.testInterpret = Interpreter(None)
+            self.assertEqual(self.testInterpret.commands, [["newLine"]])
 
     def test_base_all(self):
         with unittest.mock.patch('interpreter.File.read', return_value = "sct "):
@@ -102,10 +108,10 @@ class TestInterpreterModCases(unittest.TestCase):
             self.testInterpret = Interpreter(None)
             self.assertEqual(self.testInterpret.commands, [["square","fill","dashed",["colour","yellow"]]])
 
-def test_all_modifiers_multiple_shapes(self):
-    with unittest.mock.patch('interpreter.File.read', return_value = "S[d[yellow]]C[d[blue]]T[d[red]]"):
-        self.testInterpret = Interpreter(None)
-        self.assertEqual(self.testInterpret.commands, [["square","fill","dashed",["colour","yellow"]],["circle","fill","dashed",["colour","blue"]],["triangle","fill","dashed",["colour","red"]]])
+    def test_all_modifiers_multiple_shapes(self):
+        with unittest.mock.patch('interpreter.File.read', return_value = "S[d[yellow]]C[d[blue]]T[d[red]]"):
+            self.testInterpret = Interpreter(None)
+            self.assertEqual(self.testInterpret.commands, [["square","fill","dashed",["colour","yellow"]],["circle","fill","dashed",["colour","blue"]],["triangle","fill","dashed",["colour","red"]]])
 
 
 class TestFactory(unittest.TestCase):
@@ -148,7 +154,7 @@ class TestFactory(unittest.TestCase):
         x = self.factory.create_shape(triangle)
         self.assertEqual(x, validTriangle)
 
-class test_turtle_draws_shapes(unittest.TestCase):
+class TestTurtleDrawsShapes(unittest.TestCase):
     def setUp(self):
         self.t = MagicMock()
         Shape.shapeWidth = 50
@@ -179,7 +185,7 @@ class test_turtle_draws_shapes(unittest.TestCase):
                 left_total += arguments[0]
         self.assertEqual(left_total, 360)#
         #If width is correct, circumference should be pi * width
-        self.assertEqual(forward_total, Shape.shapeWidth * 3.14)
+        self.assertAlmostEqual(forward_total, Shape.shapeWidth * 3.14) #due to rounding, the number will not be exact
         
         
 
@@ -220,6 +226,96 @@ class test_turtle_draws_shapes(unittest.TestCase):
         self.assertTrue(pencolor_called)
         self.assertTrue(fillcolor_called)
 
+    def mock_isdown(self):
+
+        if self.pen_state:
+            self.pen_state = False
+        else: 
+            self.pen_state = True
+        return self.pen_state
+
+    def test_draws_dashed_square(self):
+        sq = Square(["dashed"])
+        self.pen_state = True
+        self.t.isdown.side_effect = self.mock_isdown   # Simulate pen up and down
+        sq.begin(self.t)
+        penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)
+        pendown_called = any(name == 'pendown' for name, _, _ in self.t.mock_calls)
+        self.assertTrue(penup_called)
+        self.assertTrue(pendown_called)
+        del(self.pen_state)
+
+    def test_draws_dashed_triangle(self):
+        triangle = Triangle(["dashed"])
+        self.pen_state = True
+        self.t.isdown.side_effect = self.mock_isdown   # Simulate pen up and down
+        triangle.begin(self.t)
+        penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)
+        pendown_called = any(name == 'pendown' for name, _, _ in self.t.mock_calls)
+        self.assertTrue(penup_called)
+        self.assertTrue(pendown_called)
+        del(self.pen_state)
+
+    def test_draws_blank_shape(self):
+        blank = Blank()
+        blank.begin(self.t)
+        # Blank shape should not call forward or left
+        forward_called = any(name == 'forward' for name, _, _ in self.t.mock_calls)
+        left_called = any(name == 'left' for name, _, _ in self.t.mock_calls)
+        self.assertFalse(forward_called)
+        self.assertFalse(left_called)
+
+    def test_draws_newline_shape(self):
+        newline = NewLine()
+        newline.begin(self.t)
+        goto_called = any(name == 'goto' for name, _, _ in self.t.mock_calls)
+        penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)
+        pendown_called = any(name == 'pendown' for name, _, _ in self.t.mock_calls)
+        self.assertTrue(goto_called)
+        self.assertTrue(penup_called)
+        self.assertTrue(pendown_called)
+
     def tearDown(self):
         del(self.t)
 
+
+
+class TestShapeRenderer(unittest.TestCase):
+    def setUp(self):
+        self.testShape = MagicMock()
+        self.turtle = MagicMock()
+
+    # Patch the Turtle class in shape_renderer to mock turtle graphics for testing Renderer initialization.
+    @patch('shape_renderer.turtle.Turtle')
+    def test_initializes_offcenter(self, mock_turtle):
+        mock_turtle.return_value = self.turtle
+        testRenderer = Renderer()
+        mock_turtle.assert_called_once()
+        self.turtle.goto.assert_called()
+        self.turtle.pendown.assert_called_once()
+        self.turtle.penup.assert_called_once()
+        self.turtle.pensize.assert_called_once_with(testRenderer.thickness)
+    
+    @patch('shape_renderer.turtle.Turtle')
+    def test_renders_shapes(self, mock_turtle):
+        mock_turtle.return_value = self.turtle
+        self.testShape.shapeWidth = 50
+        self.turtle.xcor.return_value = 0
+        testRenderer = Renderer()
+        shapes = [self.testShape for _ in range(5)]
+        testRenderer.render(shapes)
+        self.assertEqual(self.testShape.begin.call_count, 5)
+        self.turtle.forward.assert_called()
+        
+    @patch('shape_renderer.turtle.Turtle')    
+    def test_goes_to_new_line_when_exceeding_limit(self, mock_turtle):
+        mock_turtle.return_value = self.turtle
+        self.testShape.shapeWidth = 300
+        self.turtle.xcor.return_value = 200
+        testRenderer = Renderer()
+        testRenderer.xLimit = 400
+        shapes = [self.testShape]
+        testRenderer.render(shapes)
+        self.turtle.goto.assert_called()
+        args, _ = self.turtle.goto.call_args
+        self.assertEqual(args[0], testRenderer.xLimit * -1)

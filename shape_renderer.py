@@ -6,7 +6,7 @@ class Renderer():
     t = None
     xLimit = 400
     thickness = 4 
-    
+
     def __init__(self):
         #initialise turtle and set it to start position
         self.t = turtle.Turtle()
@@ -30,7 +30,7 @@ class Renderer():
         turtle.done()        
 
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     #code will randomly generate multiple shapes selected from the list
     import random
     shapes = ["circle", "square", "triangle", "blank"]
@@ -55,4 +55,4 @@ if __name__ == "__main__":
 
     renderer = Renderer()
     renderer.render(request)
-    turtle.done()
+    turtle.done()"""

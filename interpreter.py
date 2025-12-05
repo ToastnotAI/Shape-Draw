@@ -111,7 +111,8 @@ class Interpreter():
     def __repr__(self):
         return str(self.commands)
 
-
+"""
 if __name__ == "__main__":
     interpreter = Interpreter("test.txt")
     print(interpreter)
+    """

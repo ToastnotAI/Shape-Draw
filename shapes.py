@@ -43,7 +43,7 @@ class Shape():
         t.pencolor("black") # reset line colour after drawing shape
         t.fillcolor("black") # reset fill colour after drawing shape
 
-    def __eq__(self,other): #Equivalance function
+    def __eq__(self,other): #Equivalance function to use in testing
         if type(other) != type(self):
             return False
         if other.modifiers == self.modifiers:
@@ -103,7 +103,7 @@ class Circle(Shape):
                     t.pendown()
 
         t.penup()
-        t.backward(Shape.shapeWidth / 2)
+        t.forward(-(Shape.shapeWidth / 2)) #was originally a backwards command, which failed the test
         if pen:
             t.pendown()
     
