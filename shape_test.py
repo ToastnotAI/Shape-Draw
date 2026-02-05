@@ -1,11 +1,57 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, mock_open
 import unittest.mock
 from interpreter import *
 from shapes import *
 from shape_renderer import *
 
 
+
+class TestInterpreterFileFunctions(unittest.TestCase):
+    def test_file_read(self):
+        with patch('builtins.open', unittest.mock.mock_open(read_data="test data")) as mock_file:
+            file = File("dummy_path")
+            data = file.read()
+            mock_file.assert_called_once_with("dummy_path", 'r')
+            self.assertEqual(data, "test data")
+    
+    def test_file_read_wrong_path(self):
+        with patch('builtins.open', side_effect=FileNotFoundError) as mock_file:
+            file = File("wrong_path")
+            self.assertRaises(FileNotFoundError, file.read)
+            mock_file.assert_called_once_with("wrong_path", 'r')
+
+class TestInterpreterCommands(unittest.TestCase):
+    def setUp(self):
+        mock_open = unittest.mock.mock_open(read_data="")
+        self.patcher = patch('builtins.open', mock_open)
+        self.mock_file = self.patcher.start()
+
+    def test_check_colour_valid(self):
+        interpreter = Interpreter("dummy_path")
+        try:
+            interpreter._check_colour("red")
+            interpreter._check_colour("#FF0000")
+            #interpreter._check_colour("rgb(255,0,0)")
+        except ValueError:
+            self.fail("_check_colour raised ValueError unexpectedly!")
+
+    def test_check_colour_invalid(self):
+        interpreter = Interpreter("dummy_path")
+        with self.assertRaises(ValueError):
+            interpreter._check_colour("notacolour")
+
+    def test_repr_empty(self):
+        interpreter = Interpreter(None)
+        self.assertEqual(repr(interpreter), "Interpreter with file: None and commands: []")
+    
+    def test_repr_with_file_and_commands(self):
+        interpreter = Interpreter("dummy_path")
+        interpreter.commands = [["square"], ["circle", "fill"]]
+        self.assertEqual(repr(interpreter), "Interpreter with file: dummy_path and commands: [['square'], ['circle', 'fill']]")
+
+    def tearDown(self):
+        self.patcher.stop()
 
 class TestInterpreterBaseCases(unittest.TestCase):
 
@@ -39,6 +85,10 @@ class TestInterpreterBaseCases(unittest.TestCase):
         with unittest.mock.patch('interpreter.File.read', return_value = "sct "):
             self.testInterpret = Interpreter(None)
             self.assertEqual(self.testInterpret.commands, [["square"],["circle"],["triangle"],["blank"]])
+    
+    def test_unkown_character_error(self):
+        with unittest.mock.patch('interpreter.File.read', return_value = "sx"):
+            self.assertRaises(ValueError, Interpreter, None)
 
 class TestInterpreterModCases(unittest.TestCase):
     def test_fill(self):
@@ -113,6 +163,18 @@ class TestInterpreterModCases(unittest.TestCase):
             self.testInterpret = Interpreter(None)
             self.assertEqual(self.testInterpret.commands, [["square","fill","dashed",["colour","yellow"]],["circle","fill","dashed",["colour","blue"]],["triangle","fill","dashed",["colour","red"]]])
 
+    def test_unknown_modifier_error(self):
+        with unittest.mock.patch('interpreter.File.read', return_value = "s[x]"):
+            self.assertRaises(ValueError, Interpreter, None)
+    
+    def test_unknown_colour_error(self):
+        with unittest.mock.patch('interpreter.File.read', return_value = "s[[unknowncolor]]"):
+            self.assertRaises(ValueError, Interpreter, None)
+
+    def test_too_many_colour_arguments_error(self):
+        with unittest.mock.patch('interpreter.File.read', return_value = "s[[red,green,blue]]"):
+            self.assertRaises(TypeError, Interpreter, None)
+
 
 class TestFactory(unittest.TestCase):
     def setUp(self):
@@ -147,6 +209,31 @@ class TestFactory(unittest.TestCase):
         validSquare = Square([["colour","red"]])
         x = self.factory.create_shape(square)
         self.assertEqual(x, validSquare)
+
+    def test_create_blank(self):
+        blank = ["blank"]
+        validBlank = Blank()
+        x = self.factory.create_shape(blank)
+        self.assertEqual(x, validBlank)
+
+    def test_create_dashed_blank(self):
+        blank = ["blank", "dashed"]
+        validBlank = Blank(["dashed"])
+        x = self.factory.create_shape(blank)
+        self.assertEqual(x, validBlank)
+    
+    def test_create_new_line(self):
+        newline = ["newLine"]
+        validNewLine = NewLine()
+        x = self.factory.create_shape(newline)
+        self.assertEqual(x, validNewLine)
+
+    def test_create_new_line_dashed(self):
+        newline = ["newLine", "dashed"]
+        validNewLine = NewLine(["dashed"])
+        x = self.factory.create_shape(newline)
+        self.assertEqual(x, validNewLine)
+
     
     def test_create_triangle_all_modifiers(self):
         triangle = ["triangle", "fill", "dashed", ["colour", "red","#FFFFFF"]]
@@ -154,11 +241,59 @@ class TestFactory(unittest.TestCase):
         x = self.factory.create_shape(triangle)
         self.assertEqual(x, validTriangle)
 
+    def test_unknown_shape_error(self):
+        unknownShape = ["pentagon"]
+        self.assertRaises(ValueError, self.factory.create_shape, unknownShape)
+    
+    def test_wrong_command_format_error(self):
+        notAList = "square"
+        self.assertRaises(ValueError, self.factory.create_shape, notAList)
+
+    def tearDown(self):
+        del(self.factory)
+
+
+class TestShapeBaseFunctions(unittest.TestCase):
+    def test_shape_equality(self):
+        shape1 = Shape()
+        shape2 = Shape()
+        self.assertEqual(shape1, shape2)
+
+    def test_shape_equality_different_types(self):
+        shape1 = Shape()
+        shape2 = Square()
+        self.assertNotEqual(shape1, shape2)
+
+    def test_shape_equality_different_modifiers(self):
+        shape1 = Square(["fill"])
+        shape2 = Square(["dashed"])
+        self.assertNotEqual(shape1, shape2)
+
+    def test_shape_equality_same_modifiers_different_order(self):
+        shape1 = Square(["fill", "dashed"])
+        shape2 = Square(["dashed", "fill"])
+        self.assertEqual(shape1, shape2)
+
+    def test_shape_equality_same_modifiers_same_order(self):
+        shape1 = Square(["fill", "dashed"])
+        shape2 = Square(["fill", "dashed"])
+        self.assertEqual(shape1, shape2)
+    
+    def test_shape_equality_same_modifiers_different_colour_arguments(self):
+        shape1 = Square([["colour", "red"]])
+        shape2 = Square([["colour", "blue"]])
+        self.assertNotEqual(shape1, shape2)
+
 class TestTurtleDrawsShapes(unittest.TestCase):
     def setUp(self):
         self.t = MagicMock()
         Shape.shapeWidth = 50
     
+    def test_draw_not_implemented_error(self):
+        shape = Shape()
+        self.assertRaises(NotImplementedError, shape.draw, self.t)
+        self.assertRaises(NotImplementedError, shape.draw_dashed, self.t)
+
     def test_draws_basic_square(self):
         sq = Square()
         sq.begin(self.t)
@@ -210,14 +345,6 @@ class TestTurtleDrawsShapes(unittest.TestCase):
         self.assertTrue(begin_fill_called)
         self.assertTrue(end_fill_called)
 
-    def test_draws_dashed_circle(self):
-        circle = Circle(["dashed"])
-        circle.begin(self.t)
-        penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)
-        pendown_called = any(name == 'pendown' for name, _, _ in self.t.mock_calls)
-        self.assertTrue(penup_called)
-        self.assertTrue(pendown_called)
-
     def test_draws_coloured_triangle(self):
         triangle = Triangle([["colour", "red","green"]])
         triangle.begin(self.t)
@@ -245,6 +372,18 @@ class TestTurtleDrawsShapes(unittest.TestCase):
         self.assertTrue(pendown_called)
         del(self.pen_state)
 
+    def test_draws_dashed_circle(self):
+        circle = Circle(["dashed"])
+        self.pen_state = True
+        self.t.isdown.side_effect = self.mock_isdown   # Simulate pen up and down
+        circle.begin(self.t)
+        penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)
+        pendown_called = any(name == 'pendown' for name, _, _ in self.t.mock_calls)
+        print(self.t.mock_calls)
+        self.assertTrue(penup_called)
+        self.assertTrue(pendown_called)
+        del(self.pen_state)
+
     def test_draws_dashed_triangle(self):
         triangle = Triangle(["dashed"])
         self.pen_state = True
@@ -265,8 +404,27 @@ class TestTurtleDrawsShapes(unittest.TestCase):
         self.assertFalse(forward_called)
         self.assertFalse(left_called)
 
+    def test_draws_dashed_blank_shape(self):
+        blank = Blank(["dashed"])
+        blank.begin(self.t)
+        # Dashed Blank shape should not call forward or left
+        forward_called = any(name == 'forward' for name, _, _ in self.t.mock_calls)
+        left_called = any(name == 'left' for name, _, _ in self.t.mock_calls)
+        self.assertFalse(forward_called)
+        self.assertFalse(left_called)
+
     def test_draws_newline_shape(self):
         newline = NewLine()
+        newline.begin(self.t)
+        goto_called = any(name == 'goto' for name, _, _ in self.t.mock_calls)
+        penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)
+        pendown_called = any(name == 'pendown' for name, _, _ in self.t.mock_calls)
+        self.assertTrue(goto_called)
+        self.assertTrue(penup_called)
+        self.assertTrue(pendown_called)
+
+    def test_draws_newline_dashed_shape(self):
+        newline = NewLine(["dashed"])
         newline.begin(self.t)
         goto_called = any(name == 'goto' for name, _, _ in self.t.mock_calls)
         penup_called = any(name == 'penup' for name, _, _ in self.t.mock_calls)

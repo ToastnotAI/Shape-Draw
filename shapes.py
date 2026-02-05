@@ -1,6 +1,6 @@
 #Shape is an abstract class
 class Shape():
-    shapeWidth = 50 #Determines length of shape along x axis
+    shapeWidth = 75 #Determines length of shape along x axis
     dashLength = 5 #Determines how long the dashes should be in draw_dashed methods (excluding circle class). Shape positions may get offset at higher values.
     modifiers = [] 
 
@@ -43,7 +43,7 @@ class Shape():
         t.pencolor("black") # reset line colour after drawing shape
         t.fillcolor("black") # reset fill colour after drawing shape
 
-    def __eq__(self,other): #Equivalance function to use in testing
+    def __eq__(self,other): #Equivalance function to use in testing,
         if type(other) != type(self):
             return False
         if other.modifiers == self.modifiers:
@@ -152,7 +152,7 @@ class NewLine(Shape):
         t.pendown()
     
     def draw_dashed(self, t):
-        self.draw()
+        self.draw(t)
 
 # Factory class to create shapes
 # shapeType is a list where the first element is the shape name and all other items are modifiers
