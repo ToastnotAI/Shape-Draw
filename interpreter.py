@@ -105,19 +105,18 @@ class Interpreter():
 
 
     def __init__(self, filePath = None):
+        self.file = File(filePath)
         try:
-            self.file = File(filePath)
+            self.parse_commands()
         except FileNotFoundError:
             self.file = None
-        if self.file:
-            self.parse_commands()
-        else:
             self.commands = []
             print("No file found at path: {}. Interpreter created with no commands".format(filePath))
             
 
     def __repr__(self):
-        return "Interpreter with file: {} and commands: {}".format(self.file.path, self.commands)
+        file_path = self.file.path if self.file is not None else None
+        return "Interpreter with file: {} and commands: {}".format(file_path, self.commands)
 
 """
 if __name__ == "__main__":

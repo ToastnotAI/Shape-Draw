@@ -46,10 +46,12 @@ class Shape():
     def __eq__(self,other): #Equivalance function to use in testing,
         if type(other) != type(self):
             return False
-        if other.modifiers == self.modifiers:
-            return True
-        else:
+        if any (modifier not in other.modifiers for modifier in self.modifiers):
             return False
+        elif any (modifier not in self.modifiers for modifier in other.modifiers):
+            return False
+        else:
+            return True
 
 class Square(Shape):
     def draw(self, t):

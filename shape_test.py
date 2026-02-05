@@ -21,6 +21,7 @@ class TestInterpreterFileFunctions(unittest.TestCase):
             self.assertRaises(FileNotFoundError, file.read)
             mock_file.assert_called_once_with("wrong_path", 'r')
 
+
 class TestInterpreterCommands(unittest.TestCase):
     def setUp(self):
         mock_open = unittest.mock.mock_open(read_data="")
@@ -32,7 +33,6 @@ class TestInterpreterCommands(unittest.TestCase):
         try:
             interpreter._check_colour("red")
             interpreter._check_colour("#FF0000")
-            #interpreter._check_colour("rgb(255,0,0)")
         except ValueError:
             self.fail("_check_colour raised ValueError unexpectedly!")
 
@@ -40,6 +40,12 @@ class TestInterpreterCommands(unittest.TestCase):
         interpreter = Interpreter("dummy_path")
         with self.assertRaises(ValueError):
             interpreter._check_colour("notacolour")
+
+    def test_initializes_with_none_path_when_file_not_found(self):
+        self.tearDown()
+        interpreter = Interpreter("non_existent_file")
+        self.assertEqual(interpreter.commands, [])
+        self.assertIsNone(interpreter.file)
 
     def test_repr_empty(self):
         interpreter = Interpreter(None)
@@ -59,7 +65,6 @@ class TestInterpreterBaseCases(unittest.TestCase):
         with unittest.mock.patch('interpreter.File.read', return_value="s"):
             self.testInterpret = Interpreter(None)
             self.assertEqual(self.testInterpret.commands, [["square"]])
-            print(File.read())
 
     def test_base_circle(self):
         with unittest.mock.patch('interpreter.File.read', return_value="c"):
